@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User - Online Book Library</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .book {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .auth-box {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <h1>User - Online Book Library</h1>
+
+    <div class="auth-box">
+        <span id="welcomeMessage"></span>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <div id="bookList"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('welcomeMessage').textContent = `Welcome, ${user.email}`;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        });
+
+        async function loadBooks() {
+            const { data, error } = await supabase.from('books').select('*');
+            if (error) {
+                console.error(error);
+            } else {
+                const bookList = document.getElementById('bookList');
+                bookList.innerHTML = data.map(book => `
+                    <div class="book">
+                        <h3>${book.title}</h3>
+                        <p>Author: ${book.author}</p>
+                        <p>Category: ${book.category}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        loadBooks();
+    </script>
+</body>
+</html>
